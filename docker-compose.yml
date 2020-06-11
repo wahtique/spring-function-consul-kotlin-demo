@@ -1,0 +1,122 @@
+version: '3'
+services:
+  consul_server:
+    image: consul
+    container_name: faas_consul
+    ports:
+      - 8300:8300
+      - 8500:8500
+      - 8600:8600/udp
+    expose:
+      - 8500
+    restart: always
+    networks:
+      - faas
+#    volumes:
+#      - ./consul_data/:/var/consul
+#    command:
+#      - consul agent -dev -data-dir /var/consul -server -ui -node=server-1 -client=0.0.0.0
+#      - consul services register -name=schoolPostgrest -address=postgrest -port=3000
+  postgres:
+    container_name: faas_postgres
+    build:
+      context: ./postgres
+    restart: always
+    environment:
+      POSTGRES_DB: school
+      POSTGRES_USER: teacher
+      POSTGRES_PASSWORD: pwd
+      PGDATA: /tmp
+      SQL_INIT_SCRIPT: ./postgres/school.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - faas
+  pgadmin:
+    container_name: faas_pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: teacher
+      PGADMIN_DEFAULT_PASSWORD: pwd
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "5433:80"
+    volumes:
+      - ./postgres/pgadmin:/var/lib/pgadmin
+    networks:
+      - faas
+  postgrest:
+    image: postgrest/postgrest
+    container_name: faas_postgrest
+    ports:
+      - "3000:3000"
+    environment:
+      PGRST_DB_URI: postgres://teacher:pwd@postgres:5432/school
+      PGRST_DB_SCHEMA: public
+      PGRST_DB_ANON_ROLE: teacher
+      #      pour indiquer à swagger ui vers quelle uri envoyer les requêtes
+      #      sans ça il envois tout à 0.0.0.0
+      PGRST_OPENAPI_SERVER_PROXY_URI: http://localhost:3000
+    depends_on:
+      - registrator
+    networks:
+      - faas
+  swagger:
+    image: swaggerapi/swagger-ui
+    container_name: faas_postgrest_swagger-ui
+    ports:
+      - "9999:8080"
+    expose:
+      - "9999"
+    environment:
+      API_URL: http://localhost:3000
+    depends_on:
+      - postgrest
+    networks:
+      - faas
+  registrator:
+    image: gliderlabs/registrator
+    container_name: faas_registrator
+    command: consul://consul_server:8500
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock
+    depends_on:
+      - consul_server
+    restart: always
+    networks:
+      - faas
+  mark:
+    container_name: faas_mark
+    image: solutec/student-marker
+    restart: always
+    ports:
+    - 8080:8080
+    depends_on:
+      - postgrest
+      - registrator
+    environment:
+      CONSUL_HOST: consul_server
+    networks:
+      - faas
+
+
+networks:
+  faas:
+#  kafka:
+#    image: wurstmeister/kafka
+#    container_name: s1p-kafka
+#    ports:
+#      - "9092:9092"
+#    environment:
+#      - KAFKA_ADVERTISED_HOST_NAME=127.0.0.1
+#      - KAFKA_ADVERTISED_PORT=9092
+#      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+#    depends_on:
+#      - zookeeper
+#  zookeeper:
+#    image: wurstmeister/zookeeper
+#    ports:
+#      - "2181:2181"
+#    environment:
+#      - KAFKA_ADVERTISED_HOST_NAME=zookeeper1

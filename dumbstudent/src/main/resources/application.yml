@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: dumbStudent
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: false
+server:
+  port: 8090

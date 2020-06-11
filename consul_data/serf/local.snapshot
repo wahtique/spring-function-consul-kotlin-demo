@@ -1,0 +1,15 @@
+alive: server-1 172.30.0.2:8301
+event-clock: 1
+alive: server-1 172.31.0.2:8301
+event-clock: 2
+alive: server-1 192.168.0.2:8301
+event-clock: 3
+alive: server-1 192.168.16.2:8301
+event-clock: 4
+alive: server-1 192.168.32.4:8301
+event-clock: 5
+alive: server-1 192.168.48.4:8301
+alive: server-1 192.168.80.2:8301
+event-clock: 6
+alive: server-1 192.168.96.3:8301
+event-clock: 7
