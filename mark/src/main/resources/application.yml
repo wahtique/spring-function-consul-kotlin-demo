@@ -1,9 +1,0 @@
-spring:
-  application:
-    name: mark
-  cloud:
-    loadbalancer:
-      ribbon:
-        enabled: false
-    consul:
-      host: ${CONSUL_HOST}

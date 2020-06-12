@@ -1,9 +1,0 @@
-spring:
-  application:
-    name: uppercase
-  cloud:
-    loadbalancer:
-      ribbon:
-        enabled: false
-
-

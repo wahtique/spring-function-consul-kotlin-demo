@@ -1,9 +1,9 @@
 spring:
   application:
-    name: dumbStudent
+    name: student-marker
   cloud:
     loadbalancer:
       ribbon:
         enabled: false
-server:
-  port: 8090
+    consul:
+      host: ${CONSUL_HOST}
